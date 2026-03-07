@@ -57,26 +57,28 @@ npm run build
 
 ### Claude Code
 
-Add to your MCP config (usually `~/.claude/claude_code_config.json` or via `/mcp add`):
+Add to `~/.claude.json` (global) or `.mcp.json` in your project root (project-scoped):
 
+**Pre-built binary:**
 ```json
 {
   "mcpServers": {
     "astllm": {
-      "command": "/path/to/astllm-mcp-linux-x86"
+      "command": "/path/to/astllm-mcp-linux-x86",
+      "type": "stdio"
     }
   }
 }
 ```
 
-Or if running from source (Node.js):
-
+**From source (Node.js):**
 ```json
 {
   "mcpServers": {
     "astllm": {
       "command": "node",
-      "args": ["/path/to/astllm-mcp/dist/index.js"]
+      "args": ["/path/to/astllm-mcp/dist/index.js"],
+      "type": "stdio"
     }
   }
 }
@@ -86,11 +88,24 @@ Or if running from source (Node.js):
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
+**Pre-built binary:**
 ```json
 {
   "mcpServers": {
     "astllm": {
       "command": "/path/to/astllm-mcp-macosx-arm"
+    }
+  }
+}
+```
+
+**From source (Node.js):**
+```json
+{
+  "mcpServers": {
+    "astllm": {
+      "command": "node",
+      "args": ["/path/to/astllm-mcp/dist/index.js"]
     }
   }
 }
