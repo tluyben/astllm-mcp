@@ -57,6 +57,21 @@ npm run build
 
 ### Claude Code
 
+**Option A — `claude mcp add` CLI (easiest):**
+
+```bash
+# Pre-built binary, project-scoped (.mcp.json)
+claude mcp add astllm /path/to/astllm-mcp-linux-x86 --scope project
+
+# Pre-built binary, user-scoped (~/.claude.json)
+claude mcp add astllm /path/to/astllm-mcp-linux-x86 --scope user
+
+# From source (Node.js), project-scoped
+claude mcp add astllm node --args /path/to/astllm-mcp/dist/index.js --scope project
+```
+
+**Option B — manual JSON config:**
+
 Add to `~/.claude.json` (global) or `.mcp.json` in your project root (project-scoped):
 
 **Pre-built binary:**
