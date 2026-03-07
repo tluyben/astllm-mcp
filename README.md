@@ -21,10 +21,31 @@ Python, JavaScript, TypeScript, TSX, Go, Rust, Java, PHP, Dart, C#, C, C++
 
 ## Installation
 
+### Option 1: Download a pre-built binary (recommended)
+
+Download the binary for your platform from the [GitHub Releases page](https://github.com/tluyben/astllm-mcp/releases):
+
+| Platform | File |
+|---|---|
+| macOS ARM (M1/M2/M3) | `astllm-mcp-macosx-arm` |
+| Linux x86-64 | `astllm-mcp-linux-x86` |
+| Linux ARM64 | `astllm-mcp-linux-arm` |
+
+```bash
+# Example for Linux x86-64
+curl -L https://github.com/tluyben/astllm-mcp/releases/latest/download/astllm-mcp-linux-x86 -o astllm-mcp
+chmod +x astllm-mcp
+./astllm-mcp   # runs as an MCP stdio server
+```
+
+No Node.js, no npm, no build tools required.
+
+### Option 2: Build from source
+
 Requires Node.js 18+ and a C++20-capable compiler (for tree-sitter native bindings).
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/tluyben/astllm-mcp
 cd astllm-mcp
 CXXFLAGS="-std=c++20" npm install --legacy-peer-deps
 npm run build
@@ -37,6 +58,18 @@ npm run build
 ### Claude Code
 
 Add to your MCP config (usually `~/.claude/claude_code_config.json` or via `/mcp add`):
+
+```json
+{
+  "mcpServers": {
+    "astllm": {
+      "command": "/path/to/astllm-mcp-linux-x86"
+    }
+  }
+}
+```
+
+Or if running from source (Node.js):
 
 ```json
 {
@@ -57,8 +90,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 {
   "mcpServers": {
     "astllm": {
-      "command": "node",
-      "args": ["/path/to/astllm-mcp/dist/index.js"]
+      "command": "/path/to/astllm-mcp-macosx-arm"
     }
   }
 }
@@ -266,6 +298,22 @@ The repo identifier to pass to MCP tools is `local/<folder-name>` for locally in
 - Secret files excluded (`.env`, `*.pem`, `*.key`, credentials, etc.)
 - Binary files excluded by extension and content sniffing
 - File size limits enforced before reading
+
+## Single-file binaries (no Node.js required)
+
+Uses [Bun](https://bun.sh) to produce self-contained executables. All JS and native tree-sitter `.node` addons are embedded — users just download and run, no `npm install` or Node.js needed.
+
+**Prerequisites:** install Bun once (`curl -fsSL https://bun.sh/install | bash`), then:
+
+```bash
+npm run build:macosx-arm   # → dist/astllm-mcp-macosx-arm  (run on macOS ARM)
+npm run build:linux-x86    # → dist/astllm-mcp-linux-x86   (run on Linux x86)
+npm run build:linux-arm    # → dist/astllm-mcp-linux-arm   (run on Linux ARM)
+```
+
+> **Each build script must run on the matching platform.** The grammar packages ship prebuilt `.node` files for all platforms, but the `tree-sitter` core is compiled from source on install. `scripts/prep-bun-build.mjs` (run automatically before each binary build) copies the compiled `.node` into the location Bun expects. For CI, use a matrix — Linux x86 and Linux ARM can both build on Linux via Docker/QEMU; macOS ARM requires a macOS runner.
+
+> **How it works:** tree-sitter and all grammar packages support `bun build --compile` via a statically-analyzable `require()` path. Bun embeds the correct native addon for the target and extracts it to a temp directory on first run.
 
 ## Development
 

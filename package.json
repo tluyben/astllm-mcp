@@ -1,6 +1,6 @@
 {
   "name": "astllm-mcp",
-  "version": "1.0.0",
+  "version": "0.1.0-alpha",
   "description": "MCP server for efficient code indexing and symbol retrieval — cuts token costs by up to 99%",
   "type": "module",
   "main": "dist/index.js",
@@ -11,7 +11,10 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "test": "node --test --import tsx/esm test/suite.test.ts"
+    "test": "node --test --import tsx/esm test/suite.test.ts",
+    "build:macosx-arm": "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile dist/astllm-mcp-macosx-arm",
+    "build:linux-x86":  "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-x64   src/index.ts --outfile dist/astllm-mcp-linux-x86",
+    "build:linux-arm":  "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-arm64  src/index.ts --outfile dist/astllm-mcp-linux-arm"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
@@ -30,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "bun": "^1.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }
