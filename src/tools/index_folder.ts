@@ -210,7 +210,11 @@ export async function indexFolder(
   }
 
   // Check for incremental update
-  const existing = incremental ? store.loadIndex(owner, repoName) : null;
+  let existing = incremental ? store.loadIndex(owner, repoName) : null;
+  // If a prior index has files but 0 symbols, it was a failed run — force full re-parse
+  if (existing && existing.symbols.length === 0 && Object.keys(existing.file_hashes).length > 0) {
+    existing = null;
+  }
   const isIncremental = !!existing;
   let changedFiles: string[] = [];
   let addedFiles: string[] = [];
