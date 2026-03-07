@@ -2,6 +2,8 @@
 
 MCP server for efficient code indexing and symbol retrieval. Index GitHub repos or local folders once with tree-sitter AST parsing, then let AI agents retrieve only the specific symbols they need — instead of loading entire files.
 
+Simple 1 file binary distribution for trivial deployments. 
+
 **Cut code-reading token costs by up to 99%.**
 
 ## How it works
@@ -367,3 +369,12 @@ The project is TypeScript ESM. All local imports use `.js` extensions (TypeScrip
           ...
   _savings.json         # cumulative token savings
 ```
+
+## Inspiration 
+
+This tool was inspired by: https://github.com/jgravelle/jcodemunch-mcp
+
+I needed simplified distribution and a bunch of features this did not have. 
+
+
+
