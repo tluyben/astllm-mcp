@@ -1,6 +1,6 @@
 {
   "name": "astllm-mcp",
-  "version": "0.1.0-alpha",
+  "version": "0.1.1-alpha",
   "description": "MCP server for efficient code indexing and symbol retrieval — cuts token costs by up to 99%",
   "type": "module",
   "main": "dist/index.js",
