@@ -15,6 +15,9 @@
     "build:macosx-arm": "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile dist/astllm-mcp-macosx-arm",
     "build:linux-x86":  "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-x64   src/index.ts --outfile dist/astllm-mcp-linux-x86",
     "build:linux-arm":   "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-arm64  src/index.ts --outfile dist/astllm-mcp-linux-arm",
+    "test:linux-arm":  "npm run build:linux-arm  && BINARY_PATH=./dist/astllm-mcp-linux-arm  node --test --import tsx/esm test/binary.test.ts",
+    "test:linux-x86":  "npm run build:linux-x86  && BINARY_PATH=./dist/astllm-mcp-linux-x86  node --test --import tsx/esm test/binary.test.ts",
+    "test:macosx-arm": "npm run build:macosx-arm && BINARY_PATH=./dist/astllm-mcp-macosx-arm node --test --import tsx/esm test/binary.test.ts",
     "release:macosx-arm": "node scripts/release-binary.mjs macosx-arm",
     "release:linux-x86":  "node scripts/release-binary.mjs linux-x86",
     "release:linux-arm":  "node scripts/release-binary.mjs linux-arm"

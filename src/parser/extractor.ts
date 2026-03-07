@@ -1,6 +1,10 @@
 import path from 'path';
 import { createRequire } from 'module';
 import Parser from 'tree-sitter';
+// Bun --compile: literal require()s in this CJS shim are statically traceable,
+// ensuring all grammar packages are embedded in the binary bundle.
+// @ts-ignore - bun uses .cts source; tsc compiles grammars.cts → grammars.cjs
+import _grammarBundle from './grammars.cts';
 import { CodeSymbol, SymbolKind, makeSymbolId, computeContentHash, disambiguateOverloads } from './symbols.js';
 import { EXTENSION_TO_LANGUAGE, LANGUAGE_SPECS, LanguageSpec } from './languages.js';
 
@@ -8,46 +12,43 @@ const _require = createRequire(import.meta.url);
 
 // Lazy-load tree-sitter language grammars (CJS packages via createRequire)
 const loadedLanguages: Record<string, unknown> = {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _bundle = _grammarBundle as Record<string, any> | null;
 
 function loadLanguage(lang: string): unknown {
   if (lang in loadedLanguages) return loadedLanguages[lang];
   try {
     switch (lang) {
       case 'python':
-        loadedLanguages[lang] = _require('tree-sitter-python'); break;
+        loadedLanguages[lang] = _bundle?.python ?? _require('tree-sitter-python'); break;
       case 'javascript':
-        loadedLanguages[lang] = _require('tree-sitter-javascript'); break;
-      case 'typescript': {
-        const m = _require('tree-sitter-typescript');
-        loadedLanguages['typescript'] = m.typescript;
-        loadedLanguages['tsx'] = m.tsx;
-        break;
-      }
+        loadedLanguages[lang] = _bundle?.javascript ?? _require('tree-sitter-javascript'); break;
+      case 'typescript':
       case 'tsx': {
-        const m = _require('tree-sitter-typescript');
-        loadedLanguages['typescript'] = m.typescript;
-        loadedLanguages['tsx'] = m.tsx;
+        const m = _bundle?.typescript ?? _require('tree-sitter-typescript');
+        loadedLanguages['typescript'] = m?.typescript;
+        loadedLanguages['tsx'] = m?.tsx;
         break;
       }
       case 'go':
-        loadedLanguages[lang] = _require('tree-sitter-go'); break;
+        loadedLanguages[lang] = _bundle?.go ?? _require('tree-sitter-go'); break;
       case 'rust':
-        loadedLanguages[lang] = _require('tree-sitter-rust'); break;
+        loadedLanguages[lang] = _bundle?.rust ?? _require('tree-sitter-rust'); break;
       case 'java':
-        loadedLanguages[lang] = _require('tree-sitter-java'); break;
+        loadedLanguages[lang] = _bundle?.java ?? _require('tree-sitter-java'); break;
       case 'php': {
-        const m = _require('tree-sitter-php');
-        loadedLanguages[lang] = m.php ?? m;
+        const m = _bundle?.php ?? _require('tree-sitter-php');
+        loadedLanguages[lang] = m?.php ?? m;
         break;
       }
       case 'dart':
-        loadedLanguages[lang] = _require('tree-sitter-dart'); break;
+        loadedLanguages[lang] = _bundle?.dart ?? _require('tree-sitter-dart'); break;
       case 'csharp':
-        loadedLanguages[lang] = _require('tree-sitter-c-sharp'); break;
+        loadedLanguages[lang] = _bundle?.csharp ?? _require('tree-sitter-c-sharp'); break;
       case 'c':
-        loadedLanguages[lang] = _require('tree-sitter-c'); break;
+        loadedLanguages[lang] = _bundle?.c ?? _require('tree-sitter-c'); break;
       case 'cpp':
-        loadedLanguages[lang] = _require('tree-sitter-cpp'); break;
+        loadedLanguages[lang] = _bundle?.cpp ?? _require('tree-sitter-cpp'); break;
       default:
         loadedLanguages[lang] = null;
     }
