@@ -14,7 +14,10 @@
     "test": "node --test --import tsx/esm test/suite.test.ts",
     "build:macosx-arm": "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile dist/astllm-mcp-macosx-arm",
     "build:linux-x86":  "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-x64   src/index.ts --outfile dist/astllm-mcp-linux-x86",
-    "build:linux-arm":  "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-arm64  src/index.ts --outfile dist/astllm-mcp-linux-arm"
+    "build:linux-arm":   "node scripts/prep-bun-build.mjs && mkdir -p dist && bun build --compile --target=bun-linux-arm64  src/index.ts --outfile dist/astllm-mcp-linux-arm",
+    "release:macosx-arm": "node scripts/release-binary.mjs macosx-arm",
+    "release:linux-x86":  "node scripts/release-binary.mjs linux-x86",
+    "release:linux-arm":  "node scripts/release-binary.mjs linux-arm"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
