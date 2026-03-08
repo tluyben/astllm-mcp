@@ -6,7 +6,8 @@ function tryReq(fn: () => unknown): unknown {
   try { return fn(); } catch { return null; }
 }
 
-export = {
+// Use module.exports (not TypeScript export=) for Node.js v24 strip-only compatibility.
+module.exports = {
   typescript:  tryReq(() => require('tree-sitter-typescript')),
   javascript:  tryReq(() => require('tree-sitter-javascript')),
   python:      tryReq(() => require('tree-sitter-python')),
@@ -17,4 +18,6 @@ export = {
   c:           tryReq(() => require('tree-sitter-c')),
   cpp:         tryReq(() => require('tree-sitter-cpp')),
   csharp:      tryReq(() => require('tree-sitter-c-sharp')),
+  dart:        tryReq(() => require('@sengac/tree-sitter-dart')),
+  swift:       tryReq(() => require('tree-sitter-swift')),
 };

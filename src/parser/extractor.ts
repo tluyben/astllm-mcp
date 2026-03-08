@@ -42,7 +42,9 @@ function loadLanguage(lang: string): unknown {
         break;
       }
       case 'dart':
-        loadedLanguages[lang] = _bundle?.dart ?? _require('tree-sitter-dart'); break;
+        loadedLanguages[lang] = _bundle?.dart ?? _require('@sengac/tree-sitter-dart'); break;
+      case 'swift':
+        loadedLanguages[lang] = _bundle?.swift ?? _require('tree-sitter-swift'); break;
       case 'csharp':
         loadedLanguages[lang] = _bundle?.csharp ?? _require('tree-sitter-c-sharp'); break;
       case 'c':
@@ -188,6 +190,11 @@ function getSymbolName(node: Parser.SyntaxNode, spec: LanguageSpec, language: st
   if (language === 'c' && ['struct_specifier', 'enum_specifier'].includes(node.type)) {
     const nameNode = node.childForFieldName('name');
     return nameNode ? nameNode.text : null;
+  }
+  // Dart mixin_declaration: name is a bare identifier child, not a named field
+  if (language === 'dart' && node.type === 'mixin_declaration') {
+    const idChild = node.namedChildren.find(c => c.type === 'identifier');
+    return idChild ? idChild.text : null;
   }
   const nameNode =
     node.childForFieldName(spec.nameField) ??

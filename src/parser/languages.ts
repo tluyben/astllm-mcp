@@ -27,6 +27,7 @@ export const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   '.java': 'java',
   '.php': 'php',
   '.dart': 'dart',
+  '.swift': 'swift',
   '.cs': 'csharp',
   '.c': 'c',
   '.h': 'c',
@@ -166,16 +167,31 @@ export const LANGUAGE_SPECS: Record<string, LanguageSpec> = {
   dart: {
     extensions: ['.dart'],
     symbolNodeTypes: {
-      function_signature: 'function',
-      class_definition: 'class',
-      method_signature: 'method',
-      constructor_signature: 'function',
+      function_signature: 'function',    // top-level functions and methods (via method_signature recursion)
+      class_definition: 'class',         // classes and abstract classes
+      enum_declaration: 'type',          // enums
+      mixin_declaration: 'class',        // mixins (name extracted via identifier child)
     },
     nameField: 'name',
-    containerTypes: ['class_definition', 'class_body'],
+    containerTypes: ['class_definition', 'class_body', 'mixin_declaration'],
     docstringStrategy: 'preceding_comment',
     commentTypes: ['comment', 'documentation_comment'],
     parameterField: 'formal_parameter_list',
+  },
+  swift: {
+    extensions: ['.swift'],
+    symbolNodeTypes: {
+      function_declaration: 'function',         // free functions and methods
+      class_declaration: 'class',               // classes, structs, enums, extensions
+      protocol_declaration: 'interface',        // protocols
+      protocol_function_declaration: 'method',  // protocol method requirements
+      init_declaration: 'function',             // initializers
+    },
+    nameField: 'name',
+    containerTypes: ['class_declaration', 'class_body', 'protocol_declaration', 'protocol_body', 'enum_class_body'],
+    docstringStrategy: 'preceding_comment',
+    commentTypes: ['comment', 'multiline_comment'],
+    parameterField: 'params',
   },
   csharp: {
     extensions: ['.cs'],

@@ -587,9 +587,11 @@ describe('parser — getLanguageForFile', () => {
     ['foo.go',   'go'],
     ['foo.rs',   'rust'],
     ['foo.java', 'java'],
-    ['foo.cs',   'csharp'],
-    ['foo.c',    'c'],
-    ['foo.cpp',  'cpp'],
+    ['foo.cs',    'csharp'],
+    ['foo.c',     'c'],
+    ['foo.cpp',   'cpp'],
+    ['foo.dart',  'dart'],
+    ['foo.swift', 'swift'],
     ['foo.md',   null],
     ['foo.json', null],
     ['foo.txt',  null],
@@ -665,6 +667,123 @@ export function unicodeTest(): string {
     assert.ok(extracted.includes('unicodeTest'), `wrong byte offset, got:\n${extracted}`);
     assert.ok(extracted.startsWith('export function') || extracted.startsWith('function'),
       `source should start with function keyword, got: ${extracted.slice(0, 50)}`);
+  });
+});
+
+describe('parser — parseFile on Dart snippet', () => {
+  const snippet = `
+/// A Flutter widget
+class MyWidget {
+  final String title;
+  MyWidget({required this.title});
+}
+
+void greet(String name) {
+  print(name);
+}
+
+enum Status { active, inactive }
+
+mixin Flyable {
+  void fly() {}
+}
+`.trim();
+
+  test('extracts top-level class', () => {
+    const syms = parseFile(snippet, 'widget.dart', 'dart');
+    const cls = syms.find(s => s.name === 'MyWidget');
+    assert.ok(cls, 'MyWidget not found');
+    assert.equal(cls!.kind, 'class');
+  });
+
+  test('extracts top-level function', () => {
+    const syms = parseFile(snippet, 'widget.dart', 'dart');
+    const fn = syms.find(s => s.name === 'greet');
+    assert.ok(fn, 'greet not found');
+    assert.equal(fn!.kind, 'function');
+  });
+
+  test('extracts enum', () => {
+    const syms = parseFile(snippet, 'widget.dart', 'dart');
+    const e = syms.find(s => s.name === 'Status');
+    assert.ok(e, 'Status not found');
+    assert.equal(e!.kind, 'type');
+  });
+
+  test('extracts mixin', () => {
+    const syms = parseFile(snippet, 'widget.dart', 'dart');
+    const m = syms.find(s => s.name === 'Flyable');
+    assert.ok(m, 'Flyable not found');
+    assert.equal(m!.kind, 'class');
+  });
+
+  test('byte offsets are valid', () => {
+    const buf = Buffer.from(snippet, 'utf8');
+    const syms = parseFile(snippet, 'widget.dart', 'dart');
+    for (const sym of syms) {
+      assert.ok(sym.byte_offset >= 0 && sym.byte_offset < buf.length, `bad offset for ${sym.name}`);
+      assert.ok(sym.byte_length > 0 && sym.byte_offset + sym.byte_length <= buf.length, `bad length for ${sym.name}`);
+    }
+  });
+});
+
+describe('parser — parseFile on Swift snippet', () => {
+  const snippet = `
+// A Swift greeting
+func greet(name: String) -> String {
+    return "Hello, \\(name)!"
+}
+
+class Animal {
+    var name: String = ""
+    func speak() -> String { return "" }
+}
+
+struct Point {
+    var x: Double = 0
+    var y: Double = 0
+}
+
+protocol Drawable {
+    func draw()
+}
+`.trim();
+
+  test('extracts top-level function', () => {
+    const syms = parseFile(snippet, 'app.swift', 'swift');
+    const fn = syms.find(s => s.name === 'greet');
+    assert.ok(fn, 'greet not found');
+    assert.equal(fn!.kind, 'function');
+  });
+
+  test('extracts class', () => {
+    const syms = parseFile(snippet, 'app.swift', 'swift');
+    const cls = syms.find(s => s.name === 'Animal');
+    assert.ok(cls, 'Animal not found');
+    assert.equal(cls!.kind, 'class');
+  });
+
+  test('extracts struct as class', () => {
+    const syms = parseFile(snippet, 'app.swift', 'swift');
+    const s = syms.find(sym => sym.name === 'Point');
+    assert.ok(s, 'Point not found');
+    assert.equal(s!.kind, 'class');
+  });
+
+  test('extracts protocol as interface', () => {
+    const syms = parseFile(snippet, 'app.swift', 'swift');
+    const p = syms.find(s => s.name === 'Drawable');
+    assert.ok(p, 'Drawable not found');
+    assert.equal(p!.kind, 'interface');
+  });
+
+  test('byte offsets are valid', () => {
+    const buf = Buffer.from(snippet, 'utf8');
+    const syms = parseFile(snippet, 'app.swift', 'swift');
+    for (const sym of syms) {
+      assert.ok(sym.byte_offset >= 0 && sym.byte_offset < buf.length, `bad offset for ${sym.name}`);
+      assert.ok(sym.byte_length > 0 && sym.byte_offset + sym.byte_length <= buf.length, `bad length for ${sym.name}`);
+    }
   });
 });
 
