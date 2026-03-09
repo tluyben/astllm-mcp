@@ -19,7 +19,7 @@ The server **automatically indexes the working directory on startup** (increment
 
 ## Supported languages
 
-Python, JavaScript, TypeScript, TSX, Go, Rust, Java, PHP, Dart, C#, C, C++
+Python, JavaScript, TypeScript, TSX, Go, Rust, Java, PHP, Dart, C#, C, C++, Dart/Flutter, Swift
 
 ## Installation
 
