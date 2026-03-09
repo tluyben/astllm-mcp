@@ -360,21 +360,55 @@ function savePersistIndex(cwd: string): void {
   }
 }
 
+// Directories always excluded from watching (regardless of user config)
+const DEFAULT_WATCH_EXCLUDES = new Set([
+  'node_modules', '.git', 'dist', '.next', '.nuxt', 'build', 'out',
+  '__pycache__', '.cache', 'target', 'vendor', 'venv', '.venv', '.tox',
+  'coverage', '.nyc_output', '.gradle', '.idea', '.vscode', '.DS_Store',
+  'eggs', '.mypy_cache', '.pytest_cache', '.ruff_cache',
+]);
+
+function loadWatchExcludes(): Set<string> {
+  const excludes = new Set(DEFAULT_WATCH_EXCLUDES);
+  const excludeFile = path.join(os.homedir(), '.astllm', 'exclude');
+  try {
+    const content = fs.readFileSync(excludeFile, 'utf8');
+    for (const line of content.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) excludes.add(trimmed);
+    }
+  } catch { /* file doesn't exist — use defaults */ }
+  return excludes;
+}
+
+function shouldExcludeWatchDir(name: string, excludes: Set<string>): boolean {
+  // Skip hidden dirs (except .github) and known noisy dirs
+  if (name.startsWith('.') && name !== '.github') return true;
+  return excludes.has(name);
+}
+
+function collectWatchDirs(rootDir: string, excludes: Set<string>): string[] {
+  const dirs: string[] = [rootDir];
+  function walk(dir: string): void {
+    let entries: fs.Dirent[];
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (shouldExcludeWatchDir(entry.name, excludes)) continue;
+      const abs = path.join(dir, entry.name);
+      dirs.push(abs);
+      walk(abs);
+    }
+  }
+  walk(rootDir);
+  return dirs;
+}
+
 function watchCwd(cwd: string, persist: boolean): void {
+  const excludes = loadWatchExcludes();
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  let watcher: fs.FSWatcher;
-  try {
-    watcher = fs.watch(cwd, { recursive: true });
-  } catch (err) {
-    log('warn', `fs.watch not supported on this platform/Node version, file watching disabled`, String(err));
-    return;
-  }
-
-  watcher.on('change', (_event, filename) => {
-    if (typeof filename !== 'string') return;
-    if (!WATCHED_EXTENSIONS.has(path.extname(filename))) return;
-
+  function triggerReindex(): void {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
@@ -389,13 +423,22 @@ function watchCwd(cwd: string, persist: boolean): void {
         log('warn', `Re-index of ${cwd} failed`, String(err));
       });
     }, 500);
-  });
+  }
 
-  watcher.on('error', err => {
-    log('warn', `File watcher error`, String(err));
-  });
+  const dirs = collectWatchDirs(cwd, excludes);
+  let watchCount = 0;
+  for (const dir of dirs) {
+    try {
+      const w = fs.watch(dir, { recursive: false }, (_event, filename) => {
+        if (typeof filename !== 'string') return;
+        if (WATCHED_EXTENSIONS.has(path.extname(filename))) triggerReindex();
+      });
+      w.on('error', () => { /* ignore individual dir errors */ });
+      watchCount++;
+    } catch { /* skip dirs we can't watch */ }
+  }
 
-  log('info', `Watching ${cwd} for source file changes`);
+  log('info', `Watching ${watchCount} directories in ${cwd} for source file changes`);
 }
 
 async function main(): Promise<void> {

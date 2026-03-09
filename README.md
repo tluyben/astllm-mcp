@@ -15,7 +15,7 @@ Simple 1 file binary distribution for trivial deployments.
 
 The index is stored locally in `~/.code-index/` (configurable). Incremental re-indexing only re-parses changed files.
 
-The server **automatically indexes the working directory on startup** (incremental, non-blocking). Optionally set `ASTLLM_WATCH=1` to also watch for file changes and re-index automatically.
+The server **automatically indexes the working directory on startup** (incremental, non-blocking). Optionally set `ASTLLM_WATCH=1` to also watch for file changes and re-index automatically. The watcher skips noisy directories (`node_modules`, `.git`, `dist`, `.next`, etc.) by default — see [Watch excludes](#watch-excludes) below.
 
 ## Supported languages
 
@@ -294,13 +294,38 @@ Summaries use a three-tier fallback: docstring first-line → AI → signature.
 | `ASTLLM_MAX_FILE_SIZE_KB` | `500` | Max file size to index (KB) |
 | `ASTLLM_LOG_LEVEL` | `warn` | Log level: debug, info, warn, error |
 | `ASTLLM_LOG_FILE` | — | Log to file instead of stderr |
-| `ASTLLM_WATCH` | `0` | Watch working directory for source file changes and re-index automatically (`1` or `true` to enable) |
+| `ASTLLM_WATCH` | `0` | Watch working directory for source file changes and re-index automatically (`1` or `true` to enable). Excluded dirs are never watched — see [Watch excludes](#watch-excludes). |
 | `ASTLLM_PERSIST` | `0` | Persist the index to `~/.astllm/{path}.json` after every index, and pre-load it on startup (`1` or `true` to enable) |
 | `ANTHROPIC_API_KEY` | — | Enable Claude Haiku summaries |
 | `GOOGLE_API_KEY` | — | Enable Gemini Flash summaries |
 | `OPENAI_BASE_URL` | — | Enable local LLM summaries |
 
 > Legacy `JASTLLM_*` variable names are also accepted for compatibility with the original Python version's indexes.
+
+## Watch excludes
+
+When `ASTLLM_WATCH=1`, the watcher walks the directory tree **selectively** — it opens one inotify watch per non-excluded directory, not per file, and skips the following by default:
+
+```
+node_modules  .git       dist        .next     .nuxt
+build         out        __pycache__ .cache    target
+vendor        venv       .venv       .tox      coverage
+.nyc_output   .gradle    .idea       .vscode   .DS_Store
+eggs          .mypy_cache .pytest_cache .ruff_cache
+```
+
+All hidden directories (`.foo`) are also skipped, except `.github`.
+
+To add custom excludes, create `~/.astllm/exclude` — one name per line, `#` for comments:
+
+```
+# ~/.astllm/exclude
+my_large_assets_dir
+some_vendor_folder
+generated
+```
+
+Each name is matched against directory **basenames** anywhere in the tree, so `generated` excludes `src/generated`, `lib/generated`, etc.
 
 ## Telling Claude to use this MCP
 

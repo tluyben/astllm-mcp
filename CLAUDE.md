@@ -131,7 +131,7 @@ Uses file content SHA-256 hashes (for local) or git tree SHA (for GitHub) to det
 
 On startup, `main()` in `src/index.ts`:
 1. **Auto-indexes `process.cwd()`** incrementally in the background (non-blocking, always on)
-2. **Watches for file changes** if `ASTLLM_WATCH=1` — uses `fs.watch(cwd, { recursive: true })`, filters to extensions in `EXTENSION_TO_LANGUAGE`, debounces 500ms, then incremental re-index. Requires Node.js v22+ on Linux for recursive watch support.
+2. **Watches for file changes** if `ASTLLM_WATCH=1` — walks the directory tree, skipping excluded dirs, and calls `fs.watch(dir, { recursive: false })` on each allowed directory (one fd per dir, not per file). Filters events to extensions in `EXTENSION_TO_LANGUAGE`, debounces 500ms, then incremental re-index. Default excludes: `node_modules`, `.git`, `dist`, `.next`, `.nuxt`, `build`, `out`, `__pycache__`, `target`, `vendor`, `venv`, `.cache`, `coverage`, etc., plus all hidden dirs except `.github`. User can add extra names to `~/.astllm/exclude` (one per line, `#` comments).
 3. **Persists index** if `ASTLLM_PERSIST=1` — on startup, pre-loads `~/.astllm/{encoded-path}.json` into `IndexStore` before running incremental index (fast warm start). After every index (startup + watcher), writes the updated `CodeIndex` back to that file. Path encoding: `/home/user/proj` → `-home-user-proj.json`.
 
 ## Adding a new language
